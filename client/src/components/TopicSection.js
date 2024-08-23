@@ -17,18 +17,18 @@ const TopicSection = ({ topic, filter }) => {
   return (
     <div className="mb-5">
       <h2>{topic.name}</h2>
-      <Row>
-        {topic.channels.map((channel, channelIndex) => (
-          <Col key={channelIndex} xs={12} sm={6} md={4} lg={3} className="mb-4">
-            <h3 className="h5">{channel.name}</h3>
+      {topic.channels.map((channel, channelIndex) => (
+        <div key={channelIndex} className="mb-4">
+          <h3 className="h5">{channel.name}</h3>
+          <Row xs={2} sm={3} md={4} lg={6} className="g-3">
             {filteredVideos(channel.videos).map((video) => (
-              <div key={video.id} className="mb-3">
+              <Col key={video.id}>
                 <VideoCard video={video} />
-              </div>
+              </Col>
             ))}
-          </Col>
-        ))}
-      </Row>
+          </Row>
+        </div>
+      ))}
     </div>
   );
 };

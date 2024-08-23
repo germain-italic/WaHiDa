@@ -21,6 +21,12 @@ const MOCK_DATA = {
           videos: [
             { id: 3, title: "World Cup 2026 News", thumbnail: "https://via.placeholder.com/320x180.png?text=WC+2026", duration: "8:20", watched: false, liked: false },
             { id: 4, title: "Best Goals of 2023", thumbnail: "https://via.placeholder.com/320x180.png?text=Best+Goals", duration: "12:10", watched: true, liked: false },
+            { id: 3, title: "World Cup 2026 News", thumbnail: "https://via.placeholder.com/320x180.png?text=WC+2026", duration: "8:20", watched: false, liked: false },
+            { id: 4, title: "Best Goals of 2023", thumbnail: "https://via.placeholder.com/320x180.png?text=Best+Goals", duration: "12:10", watched: true, liked: false },
+            { id: 3, title: "World Cup 2026 News", thumbnail: "https://via.placeholder.com/320x180.png?text=WC+2026", duration: "8:20", watched: false, liked: false },
+            { id: 4, title: "Best Goals of 2023", thumbnail: "https://via.placeholder.com/320x180.png?text=Best+Goals", duration: "12:10", watched: true, liked: false },
+            { id: 3, title: "World Cup 2026 News", thumbnail: "https://via.placeholder.com/320x180.png?text=WC+2026", duration: "8:20", watched: false, liked: false },
+            { id: 4, title: "Best Goals of 2023", thumbnail: "https://via.placeholder.com/320x180.png?text=Best+Goals", duration: "12:10", watched: true, liked: false },
           ]
         }
       ]

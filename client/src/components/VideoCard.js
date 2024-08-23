@@ -5,8 +5,8 @@ const VideoCard = ({ video }) => (
   <Card className="h-100">
     <Card.Img variant="top" src={video.thumbnail} alt={video.title} />
     <Card.Body>
-      <Card.Title>{video.title}</Card.Title>
-      <Card.Text>
+      <Card.Title className="fs-6">{video.title}</Card.Title>
+      <Card.Text className="small">
         Duration: {video.duration}
         <br />
         {video.watched ? '✅ Watched' : '👁️ Unwatched'}
