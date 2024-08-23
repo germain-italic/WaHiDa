@@ -2,6 +2,8 @@
 
 This README provides the steps to configure MongoDB in the Laragon environment and make it accessible from the MSYS2/UCRT64 terminal.
 
+This post helped me: https://www.kreaweb.be/laragon-add-mongodb/
+
 ## Prerequisites
 
 - Laragon installed in `D:\laragon\`
@@ -98,6 +100,28 @@ You can opt-out by running the disableTelemetry() command.
 ------
 
 test>
+```
+
+# Step 6: Create WaHiDa database
+
+Once in the MongoDB shell, create a new database by typing:
+
+```bash
+use WaHiDa
+```
+
+Create a Collection (optional): You can create a collection in this database by inserting a document:
+
+```bash
+db.users.insertOne({ name: "testUser" })
+```
+
+# Step 7: Configure MongoDB Connection String
+
+In Your .env File: Update the MongoDB connection string in your .env file to connect to your local MongoDB server:
+
+```
+MONGO_URI=mongodb://localhost:27017/WaHiDa
 ```
 
 
