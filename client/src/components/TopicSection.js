@@ -60,20 +60,28 @@ const TopicSection = ({ topic, filter, onChannelMoved }) => {
         <PlusCircle size={18} /> Add Channel
       </Button>
       {channels.length > 0 ? (
-        <Row xs={1} md={2} lg={3} className="g-4">
-          {channels.map((channel) => (
-            <Col key={channel._id}>
-              <Card>
-                <Card.Body>
-                  <Card.Title>{channel.name}</Card.Title>
-                  <Card.Text>
-                    YouTube ID: {channel.youtubeId}
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+        <Row xs={1} md={3} lg={4} xl={6} className="g-4">
+        {channels.map((channel) => (
+          <Col key={channel._id}>
+            <Card>
+              <Card.Img
+                variant="top"
+                src={channel.thumbnailUrl.replace('s88-c', 's240-c')}
+                alt={channel.name + " Thumbnail"}
+              />
+              <Card.Body>
+                <Card.Title>{channel.name}</Card.Title>
+                <Card.Text>
+                  {channel.description.length > 150
+                    ? channel.description.substring(0, 150) + '...'
+                    : channel.description}
+                </Card.Text>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+
       ) : (
         <p>No channels in this topic yet.</p>
       )}
