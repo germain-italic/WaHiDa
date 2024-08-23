@@ -1,24 +1,33 @@
-import React, { useState } from 'react';
-import { Row, Col, Button, Modal, Form } from 'react-bootstrap';
-import { PlusCircle } from 'lucide-react';
-import VideoCard from './VideoCard';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { Row, Col, Button, Modal, Form, Card, Alert } from 'react-bootstrap';
+import { PlusCircle } from 'lucide-react';
 
 const TopicSection = ({ topic, filter, onChannelMoved }) => {
+  const [channels, setChannels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showNewChannelModal, setShowNewChannelModal] = useState(false);
   const [newChannelName, setNewChannelName] = useState('');
   const [newChannelYoutubeId, setNewChannelYoutubeId] = useState('');
 
-  const filteredVideos = (videos) => {
-    switch (filter) {
-      case 'unwatched':
-        return videos.filter(v => !v.watched);
-      case 'watched':
-        return videos.filter(v => v.watched);
-      default:
-        return videos;
+  const fetchChannels = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`/api/channels/${topic._id}`, { withCredentials: true });
+      setChannels(response.data);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching channels:', error);
+      setError('Failed to fetch channels. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [topic._id]);
+
+  useEffect(() => {
+    fetchChannels();
+  }, [fetchChannels]);
 
   const handleCreateChannel = async () => {
     try {
@@ -29,24 +38,20 @@ const TopicSection = ({ topic, filter, onChannelMoved }) => {
       setShowNewChannelModal(false);
       setNewChannelName('');
       setNewChannelYoutubeId('');
-      if (onChannelMoved) {
-        onChannelMoved();
-      }
+      fetchChannels();
     } catch (error) {
       console.error('Error creating channel:', error);
+      setError('Failed to create channel. Please try again.');
     }
   };
 
-  const handleMoveChannel = async (channelId, newTopicId) => {
-    try {
-      await axios.patch(`/api/channels/${channelId}/move`, { newTopicId });
-      if (onChannelMoved) {
-        onChannelMoved();
-      }
-    } catch (error) {
-      console.error('Error moving channel:', error);
-    }
-  };
+  if (loading) {
+    return <Alert variant="info">Loading channels...</Alert>;
+  }
+
+  if (error) {
+    return <Alert variant="danger">{error}</Alert>;
+  }
 
   return (
     <div className="mb-5">
@@ -54,18 +59,24 @@ const TopicSection = ({ topic, filter, onChannelMoved }) => {
       <Button variant="outline-primary" className="mb-3" onClick={() => setShowNewChannelModal(true)}>
         <PlusCircle size={18} /> Add Channel
       </Button>
-      {topic.channels && topic.channels.map((channel, channelIndex) => (
-        <div key={channelIndex} className="mb-4">
-          <h3 className="h5">{channel.name}</h3>
-          <Row xs={2} sm={3} md={4} lg={6} className="g-3">
-            {filteredVideos(channel.videos || []).map((video) => (
-              <Col key={video.id}>
-                <VideoCard video={video} />
-              </Col>
-            ))}
-          </Row>
-        </div>
-      ))}
+      {channels.length > 0 ? (
+        <Row xs={1} md={2} lg={3} className="g-4">
+          {channels.map((channel) => (
+            <Col key={channel._id}>
+              <Card>
+                <Card.Body>
+                  <Card.Title>{channel.name}</Card.Title>
+                  <Card.Text>
+                    YouTube ID: {channel.youtubeId}
+                  </Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      ) : (
+        <p>No channels in this topic yet.</p>
+      )}
 
       <Modal show={showNewChannelModal} onHide={() => setShowNewChannelModal(false)}>
         <Modal.Header closeButton>

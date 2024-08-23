@@ -10,12 +10,10 @@ axios.defaults.withCredentials = true;
 function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [filter, setFilter] = useState('all');
-
-  const [data, setData] = useState(null);
+  const [topics, setTopics] = useState([]);
   const [showNewTopicModal, setShowNewTopicModal] = useState(false);
   const [newTopicName, setNewTopicName] = useState('');
   const [isFetchingSubscriptions, setIsFetchingSubscriptions] = useState(false);
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [loading, setLoading] = useState(true);
@@ -28,9 +26,9 @@ function App() {
         const response = await axios.get('http://localhost:5000/auth/status');
         console.log('Login status response:', response.data);
         setIsLoggedIn(response.data.isLoggedIn);
-        setUserEmail(response.data.userEmail); // Add this line
+        setUserEmail(response.data.userEmail);
         if (response.data.isLoggedIn) {
-          fetchData();
+          fetchTopics();
         }
       } catch (error) {
         console.error('Error checking login status:', error);
@@ -41,16 +39,16 @@ function App() {
     };
 
     checkLoginStatus();
-
   }, []);
 
-  const fetchData = async () => {
+  const fetchTopics = async () => {
     try {
       const response = await axios.get('http://localhost:5000/api/topics', { withCredentials: true });
-      setData(response.data);
+      console.log('Fetched topics:', response.data);  // Add this line
+      setTopics(response.data);
       setError(null);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching topics:', error);
       setError('Failed to fetch topics. Please try again.');
     } finally {
       setLoading(false);
@@ -63,9 +61,7 @@ function App() {
       if (response.data.message === 'Logged out successfully') {
         setIsLoggedIn(false);
         setUserEmail('');
-        setData(null);
-        // Optionally, redirect to home page or login page
-        // window.location.href = '/';
+        setTopics([]);
       } else {
         throw new Error('Logout unsuccessful');
       }
@@ -95,7 +91,7 @@ function App() {
       await axios.post('/api/topics', { name: newTopicName });
       setShowNewTopicModal(false);
       setNewTopicName('');
-      fetchData();
+      fetchTopics();
       setError(null);
     } catch (error) {
       console.error('Error creating topic:', error);
@@ -107,7 +103,7 @@ function App() {
     setIsFetchingSubscriptions(true);
     try {
       await axios.get('http://localhost:5000/api/fetch-subscriptions', { withCredentials: true });
-      fetchData(); // Refresh the data after fetching subscriptions
+      fetchTopics(); // Refresh the data after fetching subscriptions
       setError(null);
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
@@ -154,9 +150,9 @@ function App() {
           </>
         )}
 
-        {isLoggedIn && data ? (
-          data.map((topic, index) => (
-            <TopicSection key={index} topic={topic} filter={filter} onChannelMoved={fetchData} />
+        {isLoggedIn && topics.length > 0 ? (
+          topics.map((topic) => (
+            <TopicSection key={topic._id} topic={topic} filter={filter} onChannelMoved={fetchTopics} />
           ))
         ) : (
           <Alert variant="info">

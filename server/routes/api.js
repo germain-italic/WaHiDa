@@ -81,9 +81,21 @@ router.get('/fetch-subscriptions', ensureAuth, async (req, res) => {
 // Get all topics for the logged-in user
 router.get('/topics', ensureAuth, async (req, res) => {
   try {
-    const topics = await Topic.find({ user: req.user.id });
+    const topics = await Topic.find({ user: req.user._id });
     res.json(topics);
   } catch (err) {
+    console.error('Error fetching topics:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get channels for a specific topic
+router.get('/channels/:topicId', ensureAuth, async (req, res) => {
+  try {
+    const channels = await Channel.find({ topic: req.params.topicId, user: req.user._id });
+    res.json(channels);
+  } catch (err) {
+    console.error('Error fetching channels:', err);
     res.status(500).json({ message: err.message });
   }
 });
