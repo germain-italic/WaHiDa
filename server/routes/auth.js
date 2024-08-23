@@ -28,19 +28,26 @@ router.get('/logout', (req, res) => {
   req.logout((err) => {
     if (err) {
       console.error('Error during logout:', err);
-      return next(err);
+      return res.status(500).json({ message: 'Error logging out' });
     }
-    console.log('User logged out');
-    res.redirect('http://localhost:3000');
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Error destroying session:', err);
+        return res.status(500).json({ message: 'Error destroying session' });
+      }
+      res.clearCookie('connect.sid'); // Clear the session cookie
+      console.log('User logged out successfully');
+      res.json({ message: 'Logged out successfully' });
+    });
   });
 });
 
 router.get('/status', (req, res) => {
-    console.log('Auth status requested. Is authenticated:', req.isAuthenticated());
-    res.json({
-      isLoggedIn: req.isAuthenticated(),
-      userEmail: req.user ? req.user.email : null
-    });
+  console.log('Auth status requested. Is authenticated:', req.isAuthenticated());
+  res.json({
+    isLoggedIn: req.isAuthenticated(),
+    userEmail: req.user ? req.user.email : null
   });
+});
 
 module.exports = router;

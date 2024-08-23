@@ -59,10 +59,16 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await axios.get('http://localhost:5000/auth/logout', { withCredentials: true });
-      setIsLoggedIn(false);
-      setUserEmail('');
-      setData(null);
+      const response = await axios.get('http://localhost:5000/auth/logout', { withCredentials: true });
+      if (response.data.message === 'Logged out successfully') {
+        setIsLoggedIn(false);
+        setUserEmail('');
+        setData(null);
+        // Optionally, redirect to home page or login page
+        // window.location.href = '/';
+      } else {
+        throw new Error('Logout unsuccessful');
+      }
     } catch (error) {
       console.error('Error logging out:', error);
       setError('Failed to log out. Please try again.');
