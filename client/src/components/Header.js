@@ -1,7 +1,8 @@
 import React from 'react';
 import { Navbar, Nav, Button, Dropdown, Container } from 'react-bootstrap';
+import { LogIn, PlusCircle } from 'lucide-react';
 
-const Header = ({ darkMode, toggleDarkMode, setFilter }) => (
+const Header = ({ darkMode, toggleDarkMode, setFilter, isLoggedIn, onLogin, onNewTopic }) => (
   <Navbar bg="primary" variant="dark" expand="lg">
     <Container>
       <Navbar.Brand href="#home">WaHiDa</Navbar.Brand>
@@ -21,9 +22,15 @@ const Header = ({ darkMode, toggleDarkMode, setFilter }) => (
               <Dropdown.Item onClick={() => setFilter('watched')}>Show Watched</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
-          <Button variant="outline-light" className="ms-2">
-            🔓 Login with Google
-          </Button>
+          {isLoggedIn ? (
+            <Button variant="outline-light" className="ms-2" onClick={onNewTopic}>
+              <PlusCircle size={18} /> New Topic
+            </Button>
+          ) : (
+            <Button variant="outline-light" className="ms-2" onClick={onLogin}>
+              <LogIn size={18} /> Login with Google
+            </Button>
+          )}
         </Nav>
       </Navbar.Collapse>
     </Container>
