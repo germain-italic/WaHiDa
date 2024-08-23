@@ -14,7 +14,7 @@ server/.env
 server/node_modules/
 server/package-lock.json
 server/README.md
-server/routes/api_bak.js
 
+package-lock.json
 README.md
 docs/

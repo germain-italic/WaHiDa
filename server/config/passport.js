@@ -15,12 +15,18 @@ module.exports = (passport) => {
             const newUser = {
                 googleId: profile.id,
                 email: profile.emails[0].value,
+                accessToken: accessToken,
+                refreshToken: refreshToken
             };
 
             try {
                 let user = await User.findOne({ googleId: profile.id });
                 if (user) {
                     console.log('Existing user found:', user);
+                    // Update the access token and refresh token
+                    user.accessToken = accessToken;
+                    user.refreshToken = refreshToken;
+                    await user.save();
                     done(null, user);
                 } else {
                     console.log('Creating new user');

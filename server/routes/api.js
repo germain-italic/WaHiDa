@@ -15,9 +15,15 @@ const ensureAuth = (req, res, next) => {
 // Fetch and store user's YouTube subscriptions
 router.get('/fetch-subscriptions', ensureAuth, async (req, res) => {
   try {
-    const oauth2Client = new google.auth.OAuth2();
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      '/auth/google/callback'
+    );
+
     oauth2Client.setCredentials({
-      access_token: req.user.accessToken
+      access_token: req.user.accessToken,
+      refresh_token: req.user.refreshToken
     });
 
     const youtube = google.youtube({
@@ -68,7 +74,7 @@ router.get('/fetch-subscriptions', ensureAuth, async (req, res) => {
     res.json({ message: 'Subscriptions fetched and stored successfully' });
   } catch (error) {
     console.error('Error fetching subscriptions:', error);
-    res.status(500).json({ message: 'Error fetching subscriptions' });
+    res.status(500).json({ message: 'Error fetching subscriptions', error: error.message });
   }
 });
 
