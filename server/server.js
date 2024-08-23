@@ -19,7 +19,7 @@ app.use(passport.session());
 mongoose.connect(process.env.MONGO_URI);
 
 // Passport config (Google strategy)
-require('./passportConfig')(passport);
+require('./config/passport')(passport);
 
 // Routes
 app.use('/auth', require('./routes/auth'));
