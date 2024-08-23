@@ -12,19 +12,16 @@ def get_ignore_patterns(file_path, base_path):
             for line in f:
                 line = line.strip()
                 if line and not line.startswith('#'):
-                    # All patterns are now relative to the project root
                     patterns.append(str(base_path / line))
     return patterns
 
 def get_all_ignore_patterns(root_dir):
     patterns = []
-    # Get patterns from .gitignore files
     for dirpath, dirnames, filenames in os.walk(root_dir):
         if '.gitignore' in filenames:
             gitignore_path = Path(dirpath) / '.gitignore'
             patterns.extend(get_ignore_patterns(gitignore_path, root_dir))
 
-    # Get patterns from .export_code_ignore file
     extra_ignore_file = root_dir / '.export_code_ignore'
     if extra_ignore_file.exists():
         patterns.extend(get_ignore_patterns(extra_ignore_file, root_dir))
@@ -76,25 +73,32 @@ def main():
 
     ignore_patterns = get_all_ignore_patterns(project_root)
 
-    with open(output_file, 'w') as f:
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write("PROJECT CODE EXPORT\n")
+        f.write("===================\n\n")
         f.write("Tree structure of the project (excluding ignored files):\n")
-        f.write("=====================================================\n")
+        f.write("------------------------------------------------------\n")
         tree_output = custom_tree(project_root, ignore_patterns)
         f.write("\n".join(tree_output))
-        f.write("\n\nContents of text files:\n")
-        f.write("========================\n")
+        f.write("\n\n")
+        f.write("Contents of text files:\n")
+        f.write("=======================\n\n")
 
         for root, dirs, files in os.walk(project_root):
             dirs[:] = [d for d in dirs if not is_ignored(Path(root) / d, ignore_patterns)]
             for file in files:
                 file_path = Path(root) / file
                 if not is_ignored(file_path, ignore_patterns) and not is_binary(file_path):
-                    f.write(f"\n--- {file_path.relative_to(project_root)} ---\n")
+                    relative_path = file_path.relative_to(project_root)
+                    f.write(f"File: {relative_path}\n")
+                    f.write("=" * (len(str(relative_path)) + 6) + "\n\n")
                     try:
-                        with open(file_path, 'r') as content_file:
+                        with open(file_path, 'r', encoding='utf-8') as content_file:
                             f.write(content_file.read())
                     except Exception as e:
                         f.write(f"Error reading file: {str(e)}\n")
+                    f.write("\n\n")
+                    f.write("-" * 80 + "\n\n")
 
     file_size = get_file_size(output_file)
     print(f"Scan complete. Output written to {output_file} (Size: {file_size})")
