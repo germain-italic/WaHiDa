@@ -17,6 +17,7 @@ function App() {
   const [isFetchingSubscriptions, setIsFetchingSubscriptions] = useState(false);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -27,6 +28,7 @@ function App() {
         const response = await axios.get('http://localhost:5000/auth/status');
         console.log('Login status response:', response.data);
         setIsLoggedIn(response.data.isLoggedIn);
+        setUserEmail(response.data.userEmail); // Add this line
         if (response.data.isLoggedIn) {
           fetchData();
         }
@@ -39,6 +41,7 @@ function App() {
     };
 
     checkLoginStatus();
+
   }, []);
 
   const fetchData = async () => {
@@ -51,6 +54,18 @@ function App() {
       setError('Failed to fetch topics. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await axios.get('http://localhost:5000/auth/logout', { withCredentials: true });
+      setIsLoggedIn(false);
+      setUserEmail('');
+      setData(null);
+    } catch (error) {
+      console.error('Error logging out:', error);
+      setError('Failed to log out. Please try again.');
     }
   };
 
@@ -109,6 +124,8 @@ function App() {
         isLoggedIn={isLoggedIn}
         onLogin={handleLogin}
         onNewTopic={handleNewTopic}
+        userEmail={userEmail}
+        onLogout={handleLogout}
       />
       <Container className="mt-4">
         {error && <Alert variant="danger">{error}</Alert>}

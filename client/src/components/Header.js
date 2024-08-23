@@ -1,8 +1,8 @@
 import React from 'react';
 import { Navbar, Nav, Button, Dropdown, Container } from 'react-bootstrap';
-import { LogIn, PlusCircle } from 'lucide-react';
+import { LogIn, PlusCircle, User } from 'lucide-react';
 
-const Header = ({ darkMode, toggleDarkMode, setFilter, isLoggedIn, onLogin, onNewTopic }) => (
+const Header = ({ darkMode, toggleDarkMode, setFilter, isLoggedIn, onLogin, onNewTopic, userEmail, onLogout }) => (
   <Navbar bg="primary" variant="dark" expand="lg">
     <Container>
       <Navbar.Brand href="#home">WaHiDa</Navbar.Brand>
@@ -23,9 +23,19 @@ const Header = ({ darkMode, toggleDarkMode, setFilter, isLoggedIn, onLogin, onNe
             </Dropdown.Menu>
           </Dropdown>
           {isLoggedIn ? (
-            <Button variant="outline-light" className="ms-2" onClick={onNewTopic}>
-              <PlusCircle size={18} /> New Topic
-            </Button>
+            <>
+              <Button variant="outline-light" className="ms-2 me-2" onClick={onNewTopic}>
+                <PlusCircle size={18} /> New Topic
+              </Button>
+              <Dropdown align="end">
+                <Dropdown.Toggle variant="outline-light" id="dropdown-profile">
+                  <User size={18} className="me-1" /> {userEmail}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item onClick={onLogout}>Logout</Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </>
           ) : (
             <Button variant="outline-light" className="ms-2" onClick={onLogin}>
               <LogIn size={18} /> Login with Google

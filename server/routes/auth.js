@@ -35,4 +35,12 @@ router.get('/logout', (req, res) => {
   });
 });
 
+router.get('/status', (req, res) => {
+    console.log('Auth status requested. Is authenticated:', req.isAuthenticated());
+    res.json({
+      isLoggedIn: req.isAuthenticated(),
+      userEmail: req.user ? req.user.email : null
+    });
+  });
+
 module.exports = router;
