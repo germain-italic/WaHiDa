@@ -1,110 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { Moon, Sun, Eye, EyeOff, ThumbsUp, Youtube } from 'lucide-react';
-import { Card, CardContent } from './components/ui/card';
-import { Button } from './components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './components/ui/dropdown-menu';
-import axios from 'axios'; // Add this line
+import { Container } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Header from './components/Header';
+import TopicSection from './components/TopicSection';
 
-const VideoCard = ({ video }) => (
-  <Card className="w-64 m-2">
-    <CardContent className="p-0">
-      <img src={video.thumbnail} alt={video.title} className="w-full h-36 object-cover" />
-      <div className="p-4">
-        <h3 className="text-lg font-semibold mb-2">{video.title}</h3>
-        <div className="flex justify-between items-center">
-          <span>{video.duration}</span>
-          {video.watched ? <Eye className="text-green-500" /> : <EyeOff className="text-gray-500" />}
-          {video.liked && <ThumbsUp className="text-blue-500" />}
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-);
+const MOCK_DATA = {
+  topics: [
+    {
+      name: "Football Videos",
+      channels: [
+        {
+          name: "UEFA",
+          videos: [
+            { id: 1, title: "Champions League Highlights", thumbnail: "https://via.placeholder.com/320x180.png?text=CL+Highlights", duration: "10:30", watched: false, liked: false },
+            { id: 2, title: "Euro 2024 Qualifiers", thumbnail: "https://via.placeholder.com/320x180.png?text=Euro+2024", duration: "15:45", watched: true, liked: true },
+          ]
+        },
+        {
+          name: "FIFA",
+          videos: [
+            { id: 3, title: "World Cup 2026 News", thumbnail: "https://via.placeholder.com/320x180.png?text=WC+2026", duration: "8:20", watched: false, liked: false },
+            { id: 4, title: "Best Goals of 2023", thumbnail: "https://via.placeholder.com/320x180.png?text=Best+Goals", duration: "12:10", watched: true, liked: false },
+          ]
+        }
+      ]
+    },
+    {
+      name: "Music Videos",
+      channels: [
+        {
+          name: "Vevo",
+          videos: [
+            { id: 5, title: "Top Hits This Week", thumbnail: "https://via.placeholder.com/320x180.png?text=Top+Hits", duration: "20:15", watched: false, liked: false },
+            { id: 6, title: "New Artist Spotlight", thumbnail: "https://via.placeholder.com/320x180.png?text=New+Artist", duration: "7:30", watched: true, liked: true },
+          ]
+        },
+        {
+          name: "Billboard",
+          videos: [
+            { id: 7, title: "Hot 100 Countdown", thumbnail: "https://via.placeholder.com/320x180.png?text=Hot+100", duration: "18:45", watched: false, liked: false },
+            { id: 8, title: "Artist Interviews", thumbnail: "https://via.placeholder.com/320x180.png?text=Interviews", duration: "25:00", watched: true, liked: false },
+          ]
+        }
+      ]
+    }
+  ]
+};
 
-const App = () => {
+function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [filter, setFilter] = useState('all');
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(MOCK_DATA);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('/api/videos');
-        setData(response.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
+    // Here you would fetch data from your API and update the state
+    // For now, we're using mock data
+    setData(MOCK_DATA);
   }, []);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+  useEffect(() => {
+    document.body.setAttribute('data-bs-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
-  const filteredVideos = (videos) => {
-    switch (filter) {
-      case 'unwatched':
-        return videos.filter(v => !v.watched);
-      case 'watched':
-        return videos.filter(v => v.watched);
-      default:
-        return videos;
-    }
-  };
-
-  if (!data) return <div>Loading...</div>;
+  const toggleDarkMode = () => setDarkMode(!darkMode);
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
-      <header className="p-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">WaHiDa</h1>
-        <div className="flex items-center space-x-4">
-          <Button onClick={toggleDarkMode}>
-            {darkMode ? <Sun /> : <Moon />}
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button>Show</Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onSelect={() => setFilter('all')}>Show All</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setFilter('unwatched')}>Show Unwatched</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setFilter('watched')}>Show Watched</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button>
-            <Youtube className="mr-2" /> Login with Google
-          </Button>
-        </div>
-      </header>
-      <main className="p-4">
+    <div className="App">
+      <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} setFilter={setFilter} />
+      <Container className="mt-4">
         {data.topics.map((topic, index) => (
-          <div key={index} className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">{topic.name}</h2>
-            <div className="flex flex-wrap">
-              {topic.channels.map((channel, channelIndex) => (
-                <div key={channelIndex} className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 p-2">
-                  <h3 className="text-lg font-medium mb-2">{channel.name}</h3>
-                  <div className="space-y-4">
-                    {filteredVideos(channel.videos).map((video) => (
-                      <VideoCard key={video.id} video={video} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <TopicSection key={index} topic={topic} filter={filter} />
         ))}
-      </main>
+      </Container>
     </div>
   );
-};
+}
 
 export default App;
