@@ -101,7 +101,8 @@ function App() {
     setShowNewTopicModal(true);
   };
 
-  const handleCreateTopic = async () => {
+  const handleCreateTopic = async (e) => {
+    e.preventDefault(); // Prevent default form submission
     try {
       await axios.post('/api/topics', { name: newTopicName });
       setShowNewTopicModal(false);
@@ -197,8 +198,8 @@ function App() {
         <Modal.Header closeButton>
           <Modal.Title>Create New Topic</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <Form>
+        <Form onSubmit={handleCreateTopic}>
+          <Modal.Body>
             <Form.Group>
               <Form.Label>Topic Name</Form.Label>
               <Form.Control
@@ -206,18 +207,19 @@ function App() {
                 placeholder="Enter topic name"
                 value={newTopicName}
                 onChange={(e) => setNewTopicName(e.target.value)}
+                required
               />
             </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowNewTopicModal(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleCreateTopic}>
-            Create Topic
-          </Button>
-        </Modal.Footer>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowNewTopicModal(false)}>
+              Close
+            </Button>
+            <Button variant="primary" type="submit">
+              Create Topic
+            </Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
     </div>
   );
