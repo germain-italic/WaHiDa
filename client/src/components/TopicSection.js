@@ -3,18 +3,19 @@ import axios from 'axios';
 import { Row, Col, Card, Alert, Button, Modal, Form, InputGroup } from 'react-bootstrap';
 import { Folder, PenSquare, Trash2 } from 'lucide-react';
 
-const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed, onTopicDeleted }) => {
+const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed, onTopicDeleted, refreshDefaultTopic, fetchTopics }) => {
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState(null);
-  const [topics, setTopics] = useState([]);
   const [newTopicId, setNewTopicId] = useState('');
   const [showRenameInput, setShowRenameInput] = useState(false);
   const [newTopicName, setNewTopicName] = useState(topic.name);
   const [showIcons, setShowIcons] = useState(false);
+  const [allTopics, setAllTopics] = useState([]); // State for storing all topics
 
+  // Fetch channels for the current topic
   const fetchChannels = useCallback(async () => {
     try {
       setLoading(true);
@@ -29,50 +30,53 @@ const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed, onTopicDe
     }
   }, [topic._id]);
 
-  const fetchTopics = async () => {
+  // Ensure the dropdown list is always up-to-date by fetching topics dynamically
+  const fetchAllTopics = useCallback(async () => {
     try {
-      const response = await axios.get('/api/topics', { withCredentials: true });
-      setTopics(response.data.sort((a, b) => a.name.localeCompare(b.name)));
+        const response = await axios.get('/api/topics', { withCredentials: true });
+        setAllTopics(response.data.sort((a, b) => a.name.localeCompare(b.name)));
     } catch (error) {
-      console.error('Error fetching topics:', error);
-      setError('Failed to fetch topics. Please try again.');
+        console.error('Error fetching topics:', error);
+        setError('Failed to fetch topics. Please try again.');
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchChannels();
-    fetchTopics();
-  }, [fetchChannels]);
+    fetchAllTopics(); // Fetch topics list whenever component mounts or updates
+  }, [fetchChannels, fetchAllTopics]);
 
+  // Handle the event when the "Set Topic" button is clicked
   const handleSetTopic = (channel) => {
     setSelectedChannel(channel);
     setNewTopicId('');
+    fetchAllTopics(); // Fetch topics right when the modal is triggered
     setShowModal(true);
   };
 
+  // Handle saving the selected topic for a channel
   const handleSaveTopic = async () => {
     try {
       await axios.patch(`/api/channels/${selectedChannel._id}/move`, { newTopicId }, { withCredentials: true });
       setShowModal(false);
 
       // Remove the channel from the current topic's channel list
-      setChannels(prevChannels => prevChannels.filter(ch => ch._id !== selectedChannel._id));
+      setChannels((prevChannels) => prevChannels.filter((ch) => ch._id !== selectedChannel._id));
 
       // Notify parent component about the change
       onChannelMoved(selectedChannel, topic._id, newTopicId);
+
+      // Refresh topics list after moving channel
+      fetchAllTopics(); // Ensure topics list is up-to-date
+
     } catch (error) {
       console.error('Error moving channel:', error);
       setError('Failed to move channel. Please try again.');
     }
   };
 
-  // Handle incoming channels
-  useEffect(() => {
-    if (topic.incomingChannel) {
-      setChannels(prevChannels => [...prevChannels, topic.incomingChannel]);
-    }
-  }, [topic.incomingChannel]);
 
+  // Handle renaming the topic
   const handleRenameTopic = async () => {
     try {
       console.log(`Sending PATCH request to /api/topics/${topic._id}`);
@@ -86,18 +90,32 @@ const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed, onTopicDe
     }
   };
 
+  // Handle deleting the topic
   const handleDeleteTopic = async () => {
-    if (window.confirm(`Are you sure you want to delete the topic "${topic.name}"?`)) {
+    if (topic.isDefault) {
+      setError('The default topic cannot be deleted.');
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to delete the topic "${topic.name}"? All channels in this topic will be moved to the default topic.`)) {
       try {
         const response = await axios.delete(`/api/topics/${topic._id}`, { withCredentials: true });
         console.log('Delete topic response:', response);
         onTopicDeleted(topic._id);
+        refreshDefaultTopic();
       } catch (error) {
         console.error('Error deleting topic:', error.response ? error.response.data : error.message);
         setError(`Failed to delete topic. ${error.response ? error.response.data.message : error.message}`);
       }
     }
   };
+
+  // Handle incoming channels (when a channel is moved to this topic)
+  useEffect(() => {
+    if (topic.incomingChannel) {
+      setChannels((prevChannels) => [...prevChannels, topic.incomingChannel]);
+    }
+  }, [topic.incomingChannel]);
 
   if (loading && channels.length === 0) {
     return <Alert variant="info">Loading channels...</Alert>;
@@ -151,7 +169,7 @@ const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed, onTopicDe
                 <Card.Img
                   variant="top"
                   src={channel.thumbnailUrl.replace('s88-c', 's240-c')}
-                  alt={channel.name + " Thumbnail"}
+                  alt={channel.name + ' Thumbnail'}
                 />
                 <Card.Body>
                   <Card.Title>{channel.name}</Card.Title>
@@ -190,7 +208,7 @@ const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed, onTopicDe
                 onChange={(e) => setNewTopicId(e.target.value)}
               >
                 <option value="">Choose a topic...</option>
-                {topics.map((t) => (
+                {allTopics.map((t) => (
                   <option key={t._id} value={t._id}>
                     {t.name}
                   </option>

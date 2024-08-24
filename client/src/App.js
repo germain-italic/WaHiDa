@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Container, Modal, Form, Button, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -45,7 +45,6 @@ function App() {
     try {
       const response = await axios.get('http://localhost:5000/api/topics', { withCredentials: true });
       console.log('Fetched topics:', response.data);
-      // Sort topics alphabetically
       const sortedTopics = response.data.sort((a, b) => a.name.localeCompare(b.name));
       setTopics(sortedTopics);
       setError(null);
@@ -57,18 +56,28 @@ function App() {
     }
   };
 
-
   const handleChannelMoved = (channel, oldTopicId, newTopicId) => {
-    setTopics(prevTopics => prevTopics.map(topic => {
-      if (topic._id === oldTopicId) {
-        return { ...topic, incomingChannel: null };
-      } else if (topic._id === newTopicId) {
-        return { ...topic, incomingChannel: channel };
-      }
-      return topic;
-    }));
+    setTopics(prevTopics =>
+      prevTopics.map(topic => {
+        if (topic._id === oldTopicId) {
+          return { ...topic, incomingChannel: null };
+        } else if (topic._id === newTopicId) {
+          return { ...topic, incomingChannel: channel };
+        }
+        return topic;
+      })
+    );
   };
 
+
+  const handleTopicRenamed = (updatedTopic) => {
+    setTopics(prevTopics => {
+      const updatedTopics = prevTopics.map(t =>
+        t._id === updatedTopic._id ? updatedTopic : t
+      );
+      return updatedTopics.sort((a, b) => a.name.localeCompare(b.name));
+    });
+  }
 
   const handleLogout = async () => {
     try {
@@ -104,22 +113,47 @@ function App() {
   const handleCreateTopic = async (e) => {
     e.preventDefault(); // Prevent default form submission
     try {
-      await axios.post('/api/topics', { name: newTopicName });
-      setShowNewTopicModal(false);
-      setNewTopicName('');
-      fetchTopics();
-      setError(null);
+      const response = await axios.post('/api/topics', { name: newTopicName });
+
+      if (response.status === 201) { // Check if the topic creation was successful
+        setShowNewTopicModal(false);
+        setNewTopicName('');
+
+        // Fetch topics to update the dropdown
+        fetchTopics();
+
+        setError(null);
+      } else {
+        setError('Failed to create new topic. Please try again.');
+      }
+
     } catch (error) {
       console.error('Error creating topic:', error);
       setError('Failed to create new topic. Please try again.');
     }
   };
 
-
   const handleTopicDeleted = (deletedTopicId) => {
     setTopics(prevTopics => prevTopics.filter(topic => topic._id !== deletedTopicId));
+    // Fetch topics to update the dropdown
+    fetchTopics();
   };
 
+  const refreshDefaultTopic = useCallback(async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/topics', { withCredentials: true });
+      const defaultTopic = response.data.find(topic => topic.isDefault);
+      if (defaultTopic) {
+        const channelsResponse = await axios.get(`http://localhost:5000/api/channels/${defaultTopic._id}`, { withCredentials: true });
+        setTopics(prevTopics => prevTopics.map(topic =>
+          topic._id === defaultTopic._id ? { ...topic, channels: channelsResponse.data } : topic
+        ));
+      }
+    } catch (error) {
+      console.error('Error refreshing default topic:', error);
+      setError('Failed to refresh default topic. Please try again.');
+    }
+  }, []);
 
   const handleFetchSubscriptions = async () => {
     setIsFetchingSubscriptions(true);
@@ -134,7 +168,6 @@ function App() {
       setIsFetchingSubscriptions(false);
     }
   };
-
 
   if (loading) {
     return <Container className="mt-5"><Alert variant="info">Loading...</Alert></Container>;
@@ -180,15 +213,11 @@ function App() {
               topic={topic}
               filter={filter}
               onChannelMoved={handleChannelMoved}
-              onTopicRenamed={(updatedTopic) => {
-                setTopics(prevTopics => {
-                  const updatedTopics = prevTopics.map(t =>
-                    t._id === updatedTopic._id ? updatedTopic : t
-                  );
-                  return updatedTopics.sort((a, b) => a.name.localeCompare(b.name));
-                });
-              }}
+              onTopicRenamed={handleTopicRenamed}
               onTopicDeleted={handleTopicDeleted}
+              refreshDefaultTopic={refreshDefaultTopic}
+              fetchTopics={fetchTopics}
+              topicsList={topics}
             />
           ))
         ) : (
