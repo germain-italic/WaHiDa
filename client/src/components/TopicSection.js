@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Row, Col, Card, Alert, Button, Modal, Form, InputGroup } from 'react-bootstrap';
-import { Folder, PenSquare } from 'lucide-react';
+import { Folder, PenSquare, Trash2 } from 'lucide-react';
 
-const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed }) => {
+const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed, onTopicDeleted }) => {
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,6 +13,7 @@ const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed }) => {
   const [newTopicId, setNewTopicId] = useState('');
   const [showRenameInput, setShowRenameInput] = useState(false);
   const [newTopicName, setNewTopicName] = useState(topic.name);
+  const [showIcons, setShowIcons] = useState(false);
 
   const fetchChannels = useCallback(async () => {
     try {
@@ -85,6 +86,19 @@ const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed }) => {
     }
   };
 
+  const handleDeleteTopic = async () => {
+    if (window.confirm(`Are you sure you want to delete the topic "${topic.name}"?`)) {
+      try {
+        const response = await axios.delete(`/api/topics/${topic._id}`, { withCredentials: true });
+        console.log('Delete topic response:', response);
+        onTopicDeleted(topic._id);
+      } catch (error) {
+        console.error('Error deleting topic:', error.response ? error.response.data : error.message);
+        setError(`Failed to delete topic. ${error.response ? error.response.data.message : error.message}`);
+      }
+    }
+  };
+
   if (loading && channels.length === 0) {
     return <Alert variant="info">Loading channels...</Alert>;
   }
@@ -94,7 +108,7 @@ const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed }) => {
   }
 
   return (
-    <div className="mb-5">
+    <div className="mb-5" onMouseEnter={() => setShowIcons(true)} onMouseLeave={() => setShowIcons(false)}>
       {showRenameInput ? (
         <InputGroup className="mb-3">
           <Form.Control
@@ -110,14 +124,23 @@ const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed }) => {
           </Button>
         </InputGroup>
       ) : (
-        <h2>
+        <h2 className="d-flex align-items-center">
           <Folder size={24} className="me-2" />
           {topic.name}
-          <PenSquare
-            size={20}
-            className="ms-2 cursor-pointer"
-            onClick={() => setShowRenameInput(true)}
-          />
+          {showIcons && !topic.isDefault && (
+            <>
+              <PenSquare
+                size={20}
+                className="ms-2 cursor-pointer"
+                onClick={() => setShowRenameInput(true)}
+              />
+              <Trash2
+                size={20}
+                className="ms-2 cursor-pointer"
+                onClick={handleDeleteTopic}
+              />
+            </>
+          )}
         </h2>
       )}
       {channels.length > 0 ? (

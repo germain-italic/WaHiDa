@@ -116,6 +116,11 @@ function App() {
   };
 
 
+  const handleTopicDeleted = (deletedTopicId) => {
+    setTopics(prevTopics => prevTopics.filter(topic => topic._id !== deletedTopicId));
+  };
+
+
   const handleFetchSubscriptions = async () => {
     setIsFetchingSubscriptions(true);
     try {
@@ -183,6 +188,7 @@ function App() {
                   return updatedTopics.sort((a, b) => a.name.localeCompare(b.name));
                 });
               }}
+              onTopicDeleted={handleTopicDeleted}
             />
           ))
         ) : (

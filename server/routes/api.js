@@ -104,7 +104,8 @@ router.get('/channels/:topicId', ensureAuth, async (req, res) => {
 router.post('/topics', ensureAuth, async (req, res) => {
   const topic = new Topic({
     name: req.body.name,
-    user: req.user.id
+    user: req.user.id,
+    isDefault: req.body.isDefault || false
   });
 
   try {
@@ -130,6 +131,40 @@ router.patch('/topics/:topicId', ensureAuth, async (req, res) => {
   } catch (err) {
     console.error('Error renaming topic:', err);
     res.status(400).json({ message: err.message });
+  }
+});
+
+// Deleting a topic
+router.delete('/topics/:topicId', ensureAuth, async (req, res) => {
+  try {
+    console.log('Deleting topic:', req.params.topicId);
+    const topicToDelete = await Topic.findOne({ _id: req.params.topicId, user: req.user.id });
+    if (!topicToDelete) {
+      console.log('Topic not found');
+      return res.status(404).json({ message: 'Topic not found' });
+    }
+    console.log('Topic to delete:', topicToDelete);
+
+    const defaultTopic = await Topic.findOne({ user: req.user.id, isDefault: true });
+    if (!defaultTopic) {
+      console.log('Default topic not found');
+      return res.status(400).json({ message: 'Default topic not found' });
+    }
+    console.log('Default topic:', defaultTopic);
+
+    const updateResult = await Channel.updateMany(
+      { topic: topicToDelete._id, user: req.user.id },
+      { $set: { topic: defaultTopic._id } }
+    );
+    console.log('Channels update result:', updateResult);
+
+    const deleteResult = await Topic.deleteOne({ _id: req.params.topicId, user: req.user.id });
+    console.log('Topic delete result:', deleteResult);
+
+    res.json({ message: 'Topic deleted successfully' });
+  } catch (err) {
+    console.error('Error in delete topic route:', err);
+    res.status(500).json({ message: err.message });
   }
 });
 

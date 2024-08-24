@@ -29,8 +29,8 @@ app.use(passport.session());
 // Logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-  console.log('Session:', req.session);
-  console.log('User:', req.user);
+//   console.log('Session:', req.session);
+//   console.log('User:', req.user);
   next();
 });
 
@@ -48,7 +48,7 @@ app.use('/api', require('./routes/api'));
 
 // Auth status route
 app.get('/auth/status', (req, res) => {
-  console.log('Auth status requested. Is authenticated:', req.isAuthenticated());
+//   console.log('Auth status requested. Is authenticated:', req.isAuthenticated());
   res.json({ isLoggedIn: req.isAuthenticated() });
 });
 

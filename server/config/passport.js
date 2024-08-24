@@ -50,7 +50,7 @@ module.exports = (passport) => {
         console.log('Deserializing user id:', id);
         User.findById(id)
             .then(user => {
-                console.log('Deserialized user:', user);
+                // console.log('Deserialized user:', user);
                 done(null, user);
             })
             .catch(err => {
