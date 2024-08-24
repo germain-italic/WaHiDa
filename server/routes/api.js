@@ -50,7 +50,7 @@ router.get('/fetch-subscriptions', ensureAuth, async (req, res) => {
     let uncategorizedTopic = await Topic.findOne({ user: req.user.id, isDefault: true });
     if (!uncategorizedTopic) {
       uncategorizedTopic = await Topic.create({
-        name: 'Uncategorized',
+        name: 'Uncategorized subscriptions',
         user: req.user.id,
         isDefault: true
       });
