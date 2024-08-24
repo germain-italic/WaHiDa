@@ -5,7 +5,7 @@ import { LogIn, PlusCircle, User } from 'lucide-react';
 const Header = ({ darkMode, toggleDarkMode, setFilter, isLoggedIn, onLogin, onNewTopic, userEmail, onLogout }) => (
   <Navbar bg="primary" variant="dark" expand="lg">
     <Container>
-      <Navbar.Brand href="#home">WaHiDa</Navbar.Brand>
+      <Navbar.Brand href="#home">Watched History Dashboard</Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
         <Nav>
