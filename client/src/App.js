@@ -13,7 +13,6 @@ function App() {
   const [topics, setTopics] = useState([]);
   const [showNewTopicModal, setShowNewTopicModal] = useState(false);
   const [newTopicName, setNewTopicName] = useState('');
-  const [refreshKey, setRefreshKey] = useState(0);
   const [isFetchingSubscriptions, setIsFetchingSubscriptions] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
@@ -46,16 +45,28 @@ function App() {
     try {
       const response = await axios.get('http://localhost:5000/api/topics', { withCredentials: true });
       console.log('Fetched topics:', response.data);
-      setTopics(response.data);
+      // Sort topics alphabetically
+      const sortedTopics = response.data.sort((a, b) => a.name.localeCompare(b.name));
+      setTopics(sortedTopics);
       setError(null);
-      // Increment refreshKey to trigger a re-render of all TopicSections
-      setRefreshKey(prevKey => prevKey + 1);
     } catch (error) {
       console.error('Error fetching topics:', error);
       setError('Failed to fetch topics. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+
+  const handleChannelMoved = (channel, oldTopicId, newTopicId) => {
+    setTopics(prevTopics => prevTopics.map(topic => {
+      if (topic._id === oldTopicId) {
+        return { ...topic, incomingChannel: null };
+      } else if (topic._id === newTopicId) {
+        return { ...topic, incomingChannel: channel };
+      }
+      return topic;
+    }));
   };
 
 
@@ -103,11 +114,6 @@ function App() {
     }
   };
 
-  const handleTopicRenamed = (updatedTopic) => {
-    // Update your state or refetch topics
-    console.log('Topic renamed:', updatedTopic);
-    fetchTopics(); // Assuming you have a function to fetch all topics
-  };
 
   const handleFetchSubscriptions = async () => {
     setIsFetchingSubscriptions(true);
@@ -122,6 +128,7 @@ function App() {
       setIsFetchingSubscriptions(false);
     }
   };
+
 
   if (loading) {
     return <Container className="mt-5"><Alert variant="info">Loading...</Alert></Container>;
@@ -163,12 +170,18 @@ function App() {
         {isLoggedIn && topics.length > 0 ? (
           topics.map((topic) => (
             <TopicSection
-              key={`${topic._id}-${refreshKey}`}
+              key={topic._id}
               topic={topic}
               filter={filter}
-              onChannelMoved={fetchTopics}
-              onTopicRenamed={handleTopicRenamed}
-              refreshKey={refreshKey}
+              onChannelMoved={handleChannelMoved}
+              onTopicRenamed={(updatedTopic) => {
+                setTopics(prevTopics => {
+                  const updatedTopics = prevTopics.map(t =>
+                    t._id === updatedTopic._id ? updatedTopic : t
+                  );
+                  return updatedTopics.sort((a, b) => a.name.localeCompare(b.name));
+                });
+              }}
             />
           ))
         ) : (

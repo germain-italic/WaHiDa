@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Row, Col, Card, Alert, Button, Modal, Form, InputGroup } from 'react-bootstrap';
 import { Folder, PenSquare } from 'lucide-react';
 
-const TopicSection = ({ topic, filter, onChannelMoved, refreshKey, onTopicRenamed }) => {
+const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed }) => {
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,7 +41,7 @@ const TopicSection = ({ topic, filter, onChannelMoved, refreshKey, onTopicRename
   useEffect(() => {
     fetchChannels();
     fetchTopics();
-  }, [fetchChannels, refreshKey]);
+  }, [fetchChannels]);
 
   const handleSetTopic = (channel) => {
     setSelectedChannel(channel);
@@ -53,12 +53,24 @@ const TopicSection = ({ topic, filter, onChannelMoved, refreshKey, onTopicRename
     try {
       await axios.patch(`/api/channels/${selectedChannel._id}/move`, { newTopicId }, { withCredentials: true });
       setShowModal(false);
-      onChannelMoved();
+
+      // Remove the channel from the current topic's channel list
+      setChannels(prevChannels => prevChannels.filter(ch => ch._id !== selectedChannel._id));
+
+      // Notify parent component about the change
+      onChannelMoved(selectedChannel, topic._id, newTopicId);
     } catch (error) {
       console.error('Error moving channel:', error);
       setError('Failed to move channel. Please try again.');
     }
   };
+
+  // Handle incoming channels
+  useEffect(() => {
+    if (topic.incomingChannel) {
+      setChannels(prevChannels => [...prevChannels, topic.incomingChannel]);
+    }
+  }, [topic.incomingChannel]);
 
   const handleRenameTopic = async () => {
     try {
@@ -73,7 +85,7 @@ const TopicSection = ({ topic, filter, onChannelMoved, refreshKey, onTopicRename
     }
   };
 
-  if (loading) {
+  if (loading && channels.length === 0) {
     return <Alert variant="info">Loading channels...</Alert>;
   }
 
@@ -177,4 +189,4 @@ const TopicSection = ({ topic, filter, onChannelMoved, refreshKey, onTopicRename
   );
 };
 
-export default TopicSection;
+export default React.memo(TopicSection);
