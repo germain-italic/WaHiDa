@@ -165,13 +165,17 @@ const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed, onTopicDe
           {channels.map((channel) => (
             <Col key={channel._id}>
               <Card>
-                <Card.Img
-                  variant="top"
-                  src={channel.thumbnailUrl.replace('s88-c', 's240-c')}
-                  alt={channel.name + ' Thumbnail'}
-                />
+              <a href={`https://www.youtube.com/channel/${channel.youtubeId}`} target="_blank" rel="noopener noreferrer">
+                  <Card.Img
+                    variant="top"
+                    src={channel.thumbnailUrl.replace('s88-c', 's240-c')}
+                    alt={channel.name + ' Thumbnail'}
+                  />
+                </a>
                 <Card.Body>
-                  <Card.Title>{channel.name}</Card.Title>
+                  <a href={channel.url} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
+                    <Card.Title>{channel.name}</Card.Title>
+                  </a>
                   <Card.Text>
                     {channel.description.length > 150
                       ? channel.description.substring(0, 150) + '...'
