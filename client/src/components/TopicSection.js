@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Row, Col, Card, Alert, Button, Modal, Form } from 'react-bootstrap';
-import { Folder } from 'lucide-react';
+import { Row, Col, Card, Alert, Button, Modal, Form, InputGroup } from 'react-bootstrap';
+import { Folder, PenSquare } from 'lucide-react';
 
-const TopicSection = ({ topic, filter, onChannelMoved, refreshKey }) => {
+const TopicSection = ({ topic, filter, onChannelMoved, refreshKey, onTopicRenamed }) => {
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,6 +11,8 @@ const TopicSection = ({ topic, filter, onChannelMoved, refreshKey }) => {
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [topics, setTopics] = useState([]);
   const [newTopicId, setNewTopicId] = useState('');
+  const [showRenameInput, setShowRenameInput] = useState(false);
+  const [newTopicName, setNewTopicName] = useState(topic.name);
 
   const fetchChannels = useCallback(async () => {
     try {
@@ -39,7 +41,7 @@ const TopicSection = ({ topic, filter, onChannelMoved, refreshKey }) => {
   useEffect(() => {
     fetchChannels();
     fetchTopics();
-  }, [fetchChannels, refreshKey]); // Add refreshKey to the dependency array
+  }, [fetchChannels, refreshKey]);
 
   const handleSetTopic = (channel) => {
     setSelectedChannel(channel);
@@ -58,6 +60,19 @@ const TopicSection = ({ topic, filter, onChannelMoved, refreshKey }) => {
     }
   };
 
+  const handleRenameTopic = async () => {
+    try {
+      console.log(`Sending PATCH request to /api/topics/${topic._id}`);
+      const response = await axios.patch(`/api/topics/${topic._id}`, { name: newTopicName }, { withCredentials: true });
+      console.log('Rename response:', response.data);
+      setShowRenameInput(false);
+      onTopicRenamed(response.data);
+    } catch (error) {
+      console.error('Error renaming topic:', error.response ? error.response.data : error.message);
+      setError('Failed to rename topic. Please try again.');
+    }
+  };
+
   if (loading) {
     return <Alert variant="info">Loading channels...</Alert>;
   }
@@ -68,7 +83,31 @@ const TopicSection = ({ topic, filter, onChannelMoved, refreshKey }) => {
 
   return (
     <div className="mb-5">
-      <h2>{topic.name}</h2>
+      {showRenameInput ? (
+        <InputGroup className="mb-3">
+          <Form.Control
+            value={newTopicName}
+            onChange={(e) => setNewTopicName(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleRenameTopic()}
+          />
+          <Button variant="outline-secondary" onClick={handleRenameTopic}>
+            Save
+          </Button>
+          <Button variant="outline-secondary" onClick={() => setShowRenameInput(false)}>
+            Cancel
+          </Button>
+        </InputGroup>
+      ) : (
+        <h2>
+          <Folder size={24} className="me-2" />
+          {topic.name}
+          <PenSquare
+            size={20}
+            className="ms-2 cursor-pointer"
+            onClick={() => setShowRenameInput(true)}
+          />
+        </h2>
+      )}
       {channels.length > 0 ? (
         <Row xs={1} md={3} lg={4} xl={6} className="g-4">
           {channels.map((channel) => (

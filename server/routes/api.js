@@ -115,6 +115,24 @@ router.post('/topics', ensureAuth, async (req, res) => {
   }
 });
 
+// Renaming a topic
+router.patch('/topics/:topicId', ensureAuth, async (req, res) => {
+  try {
+    const updatedTopic = await Topic.findOneAndUpdate(
+      { _id: req.params.topicId, user: req.user.id },
+      { name: req.body.name },
+      { new: true }
+    );
+    if (!updatedTopic) {
+      return res.status(404).json({ message: 'Topic not found' });
+    }
+    res.json(updatedTopic);
+  } catch (err) {
+    console.error('Error renaming topic:', err);
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // Get all channels for a topic
 router.get('/topics/:topicId/channels', ensureAuth, async (req, res) => {
   try {

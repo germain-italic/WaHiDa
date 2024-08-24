@@ -103,6 +103,12 @@ function App() {
     }
   };
 
+  const handleTopicRenamed = (updatedTopic) => {
+    // Update your state or refetch topics
+    console.log('Topic renamed:', updatedTopic);
+    fetchTopics(); // Assuming you have a function to fetch all topics
+  };
+
   const handleFetchSubscriptions = async () => {
     setIsFetchingSubscriptions(true);
     try {
@@ -161,6 +167,7 @@ function App() {
               topic={topic}
               filter={filter}
               onChannelMoved={fetchTopics}
+              onTopicRenamed={handleTopicRenamed}
               refreshKey={refreshKey}
             />
           ))
