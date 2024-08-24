@@ -133,27 +133,35 @@ function App() {
     }
   };
 
-  const handleTopicDeleted = (deletedTopicId) => {
-    setTopics(prevTopics => prevTopics.filter(topic => topic._id !== deletedTopicId));
-    // Fetch topics to update the dropdown
-    fetchTopics();
-  };
-
-  const refreshDefaultTopic = useCallback(async () => {
+  const handleTopicDeleted = useCallback(async (deletedTopicId) => {
+    console.log('handleTopicDeleted called with id:', deletedTopicId);
     try {
+      console.log('Removing deleted topic from state');
+      setTopics(prevTopics => {
+        const newTopics = prevTopics.filter(topic => topic._id !== deletedTopicId);
+        console.log('Topics after removal:', newTopics);
+        return newTopics;
+      });
+
+      console.log('Fetching updated topics from server');
       const response = await axios.get('http://localhost:5000/api/topics', { withCredentials: true });
-      const defaultTopic = response.data.find(topic => topic.isDefault);
-      if (defaultTopic) {
-        const channelsResponse = await axios.get(`http://localhost:5000/api/channels/${defaultTopic._id}`, { withCredentials: true });
-        setTopics(prevTopics => prevTopics.map(topic =>
-          topic._id === defaultTopic._id ? { ...topic, channels: channelsResponse.data } : topic
-        ));
-      }
+      console.log('Fetched topics:', response.data);
+
+      const updatedTopics = response.data.sort((a, b) => a.name.localeCompare(b.name));
+      console.log('Sorted topics:', updatedTopics);
+
+      console.log('Setting new topics state');
+      setTopics(updatedTopics);
+      console.log('State update called. Current topics state:', topics);
+
+      // Force a re-render
+      setError('');
+      console.log('Forced re-render by setting error state');
     } catch (error) {
-      console.error('Error refreshing default topic:', error);
-      setError('Failed to refresh default topic. Please try again.');
+      console.error('Error handling topic deletion:', error);
+      setError('Failed to update topics after deletion. Please refresh the page.');
     }
-  }, []);
+  }, [topics]);
 
   const handleFetchSubscriptions = async () => {
     setIsFetchingSubscriptions(true);
@@ -209,13 +217,12 @@ function App() {
         {isLoggedIn && topics.length > 0 ? (
           topics.map((topic) => (
             <TopicSection
-              key={topic._id}
+              key={`${topic._id}-${topics.length}`}  // Add this line
               topic={topic}
               filter={filter}
               onChannelMoved={handleChannelMoved}
               onTopicRenamed={handleTopicRenamed}
               onTopicDeleted={handleTopicDeleted}
-              refreshDefaultTopic={refreshDefaultTopic}
               fetchTopics={fetchTopics}
               topicsList={topics}
             />

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Row, Col, Card, Alert, Button, Modal, Form, InputGroup } from 'react-bootstrap';
 import { Folder, PenSquare, Trash2 } from 'lucide-react';
 
-const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed, onTopicDeleted, refreshDefaultTopic, fetchTopics }) => {
+const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed, onTopicDeleted, fetchTopics }) => {
   const [channels, setChannels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -90,7 +90,6 @@ const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed, onTopicDe
     }
   };
 
-  // Handle deleting the topic
   const handleDeleteTopic = async () => {
     if (topic.isDefault) {
       setError('The default topic cannot be deleted.');
@@ -99,10 +98,10 @@ const TopicSection = ({ topic, filter, onChannelMoved, onTopicRenamed, onTopicDe
 
     if (window.confirm(`Are you sure you want to delete the topic "${topic.name}"? All channels in this topic will be moved to the default topic.`)) {
       try {
+        console.log('Deleting topic:', topic._id);
         const response = await axios.delete(`/api/topics/${topic._id}`, { withCredentials: true });
-        console.log('Delete topic response:', response);
+        console.log('Delete response:', response.data);
         onTopicDeleted(topic._id);
-        refreshDefaultTopic();
       } catch (error) {
         console.error('Error deleting topic:', error.response ? error.response.data : error.message);
         setError(`Failed to delete topic. ${error.response ? error.response.data.message : error.message}`);

@@ -134,7 +134,6 @@ router.patch('/topics/:topicId', ensureAuth, async (req, res) => {
   }
 });
 
-// Deleting a topic
 router.delete('/topics/:topicId', ensureAuth, async (req, res) => {
   try {
     console.log('Deleting topic:', req.params.topicId);
@@ -161,7 +160,13 @@ router.delete('/topics/:topicId', ensureAuth, async (req, res) => {
     const deleteResult = await Topic.deleteOne({ _id: req.params.topicId, user: req.user.id });
     console.log('Topic delete result:', deleteResult);
 
-    res.json({ message: 'Topic deleted successfully' });
+    const updatedTopics = await Topic.find({ user: req.user.id });
+    console.log('Updated topics:', updatedTopics);
+
+    res.json({
+      message: 'Topic deleted successfully',
+      updatedTopics: updatedTopics
+    });
   } catch (err) {
     console.error('Error in delete topic route:', err);
     res.status(500).json({ message: err.message });
